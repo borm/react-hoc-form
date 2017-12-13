@@ -1,0 +1,72 @@
+{
+  "name": "react-hoc-form",
+  "version": "1.0.1",
+  "description": "",
+  "main": "./lib/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "clean": "rimraf lib dist",
+    "dev": "NODE_PATH=. NODE_ENV=development webpack --progress --colors --watch --env dev",
+    "build": "npm run build:lib && npm run build:umd && npm run build:umd:min",
+    "build:lib": "babel src --out-dir lib",
+    "build:umd": "cross-env NODE_ENV=development webpack",
+    "build:umd:min": "cross-env NODE_ENV=production webpack",
+    "prepublish": "npm run clean && npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/borm/react-hoc-form.git"
+  },
+  "bugs": {
+    "url": "https://github.com/borm/react-hoc-form/issues"
+  },
+  "author": "borm",
+  "license": "ISC",
+  "keywords": [
+    "react",
+    "form",
+    "es6",
+    "library",
+    "umd",
+    "commonjs"
+  ],
+  "peerDependencies": {
+    "react": "^15.0.0-0 || ^16.0.0-0",
+    "prop-types": "^15.6.0",
+    "scroll-into-view": "^1.8.3"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-core": "^6.26.0",
+    "babel-eslint": "^8.0.2",
+    "babel-loader": "^7.1.2",
+    "babel-plugin-add-module-exports": "^0.2.1",
+    "babel-plugin-transform-export-extensions": "^6.22.0",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "babel-preset-es2015": "^6.24.1",
+    "babel-preset-react": "^6.24.1",
+    "babel-preset-stage-0": "^6.24.1",
+    "cross-env": "^5.1.1",
+    "prop-types": "^15.6.0",
+    "react": "^16.2.0",
+    "react-dom": "^16.2.0",
+    "rimraf": "^2.6.2",
+    "scroll-into-view": "^1.9.1",
+    "webpack": "^3.8.1"
+  },
+  "dependencies": {
+    "lodash.get": "^4.4.2",
+    "lodash.keys": "^4.2.0",
+    "lodash.set": "^4.3.2",
+    "lodash.trim": "^4.5.1",
+    "lodash.uniq": "^4.5.0"
+  },
+  "files": ["README.md", "lib", "dist", "*.js.flow"],
+  "npmName": "react-hoc-form",
+  "npmFileMap": [
+    {
+      "basePath": "/dist/",
+      "files": ["*.js"]
+    }
+  ]
+}
