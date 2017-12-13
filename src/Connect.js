@@ -1,5 +1,5 @@
 /* eslint-disable react/sort-comp,no-underscore-dangle */
-import React, { Component } from 'react';
+import React, { Component, cloneElement } from 'react';
 import PropTypes from 'prop-types';
 import unique from 'lodash.uniq';
 import Serialize from './Serialize';
@@ -9,44 +9,45 @@ const isEvent = candidate =>
   !!(candidate && candidate.stopPropagation && candidate.preventDefault);
 
 const connect = (Composed) => {
-  const contextTypes = {
-    form: PropTypes.object,
-  };
-  const childContextTypes = {
-    initialize: PropTypes.func,
-    update: PropTypes.object,
-    field: PropTypes.object,
-    handleChange: PropTypes.func,
-    handleBlur: PropTypes.func,
 
-    subscribe: PropTypes.func,
-    unSubscribe: PropTypes.func,
-    handleSubmit: PropTypes.func,
+  class Connect extends Component {
 
-    names: PropTypes.array,
-    values: PropTypes.object,
-    fields: PropTypes.object,
-    errors: PropTypes.object,
-    warnings: PropTypes.object,
-  };
-  const propTypes = {
-    names: PropTypes.array,
-    values: PropTypes.object,
-    // fields: PropTypes.object,
-    errors: PropTypes.object,
-    warnings: PropTypes.object,
-    validateOnBlur: PropTypes.bool,
-  };
-  const defaultProps = {
-    names: [],
-    values: {},
-    // fields: {},
-    errors: {},
-    warnings: {},
-    validateOnBlur: true,
-  };
+    static contextTypes = {
+      form: PropTypes.object,
+    };
+    static childContextTypes = {
+      initialize: PropTypes.func,
+      update: PropTypes.object,
+      field: PropTypes.object,
+      handleChange: PropTypes.func,
+      handleBlur: PropTypes.func,
 
-  class Form extends Component {
+      subscribe: PropTypes.func,
+      unSubscribe: PropTypes.func,
+      handleSubmit: PropTypes.func,
+
+      names: PropTypes.array,
+      values: PropTypes.object,
+      fields: PropTypes.object,
+      errors: PropTypes.object,
+      warnings: PropTypes.object,
+    };
+    static propTypes = {
+      names: PropTypes.array,
+      values: PropTypes.object,
+      // fields: PropTypes.object,
+      errors: PropTypes.object,
+      warnings: PropTypes.object,
+      validateOnBlur: PropTypes.bool,
+    };
+    static defaultProps = {
+      names: [],
+      values: {},
+      // fields: {},
+      errors: {},
+      warnings: {},
+      validateOnBlur: true,
+    };
 
     constructor(props) {
       super(props);
@@ -531,44 +532,51 @@ const connect = (Composed) => {
 
     render() {
       const { values, fields, errors, warnings } = this.state;
-      return (
-        <Composed
-          {...this.props}
-          {...this.state}
-          isValid={Object.keys(values).reduce((isValid, name) => {
-            const field = fields[name];
-            if (
-              (field && errors[name])
+      return cloneElement(this.props.children, {
+        ...this.props,
+        ...this.state,
+        isValid: Object.keys(values).reduce((isValid, name) => {
+          const field = fields[name];
+          if (
+            (field && errors[name])
+            &&
+            (
+              typeof field.required !== 'undefined'
               &&
-              (
-                typeof field.required !== 'undefined'
-                &&
-                field.required === true
-              )
-            ) {
-              return false;
-            }
-            return isValid;
-          }, true)}
-          serialized={{
-            values: Serialize(values),
-            errors: Serialize(errors),
-            warnings: Serialize(warnings),
-          }}
-          handleChange={this.field.update}
-          handleBlur={this.field.blur}
-          update={this.update}
-        />
-      );
+              field.required === true
+            )
+          ) {
+            return false;
+          }
+          return isValid;
+        }, true),
+        serialized: {
+          values: Serialize(values),
+          errors: Serialize(errors),
+          warnings: Serialize(warnings),
+        },
+        handleChange: this.field.update,
+        handleBlur: this.field.blur,
+        update: this.update,
+      });
     }
 
   }
 
-  Form.contextTypes = contextTypes;
-  Form.childContextTypes = childContextTypes;
-  Form.propTypes = propTypes;
-  Form.defaultProps = defaultProps;
-  return Form;
+  return class extends Component {
+    render() {
+      return (
+        <Connect
+          {...this.props}
+        >
+          <Composed
+            {...this.props}
+          />
+        </Connect>
+      );
+    }
+  };
+
 };
 
 export default () => target => connect(target);

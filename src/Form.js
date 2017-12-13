@@ -5,43 +5,43 @@ import scrollIntoView from 'scroll-into-view';
 import isPromise from './isPromise';
 import Deserialize from './Deserialize';
 
-const contextTypes = {
-  initialize: PropTypes.func,
-
-  subscribe: PropTypes.func,
-  unSubscribe: PropTypes.func,
-  handleSubmit: PropTypes.func,
-
-  names: PropTypes.array,
-};
-const propTypes = {
-  validateOnBlur: PropTypes.bool,
-  noValidate: PropTypes.bool,
-  children: PropTypes.any,
-
-  onSubmit: PropTypes.func,
-  validate: PropTypes.func,
-
-  names: PropTypes.array,
-  values: PropTypes.object,
-  fields: PropTypes.object,
-  errors: PropTypes.object,
-};
-const defaultProps = {
-  validateOnBlur: true,
-  noValidate: true,
-  children: null,
-
-  onSubmit: () => {},
-  validate: () => {},
-
-  names: [],
-  values: {},
-  fields: {},
-  errors: {},
-};
-
 class Form extends Component {
+
+  static contextTypes = {
+    initialize: PropTypes.func,
+
+    subscribe: PropTypes.func,
+    unSubscribe: PropTypes.func,
+    handleSubmit: PropTypes.func,
+
+    names: PropTypes.array,
+  };
+  static propTypes = {
+    validateOnBlur: PropTypes.bool,
+    noValidate: PropTypes.bool,
+    children: PropTypes.any,
+
+    onSubmit: PropTypes.func,
+    validate: PropTypes.func,
+
+    names: PropTypes.array,
+    values: PropTypes.object,
+    fields: PropTypes.object,
+    errors: PropTypes.object,
+  };
+  static defaultProps = {
+    validateOnBlur: true,
+    noValidate: true,
+    children: null,
+
+    onSubmit: () => {},
+    validate: () => {},
+
+    names: [],
+    values: {},
+    fields: {},
+    errors: {},
+  };
 
   static getCoords(elem) {
     // (1)
@@ -187,9 +187,5 @@ class Form extends Component {
   }
 
 }
-
-Form.contextTypes = contextTypes;
-Form.propTypes = propTypes;
-Form.defaultProps = defaultProps;
 
 export default Form;

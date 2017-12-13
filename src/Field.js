@@ -6,49 +6,50 @@ import React, {
 } from 'react';
 import PropTypes from 'prop-types';
 
-const contextTypes = {
-  update: PropTypes.object,
-  field: PropTypes.object,
-  handleChange: PropTypes.func,
-  handleBlur: PropTypes.func,
-  values: PropTypes.object,
-  errors: PropTypes.object,
-  warnings: PropTypes.object,
-};
-const propTypes = {
-  name: PropTypes.string.isRequired,
-  type: PropTypes.string,
-  component: PropTypes.oneOfType([
-    PropTypes.string,
-    PropTypes.node,
-    PropTypes.element,
-    PropTypes.func,
-  ]),
-  value: PropTypes.any,
-  checked: PropTypes.any,
-  defaultValue: PropTypes.any,
-  defaultChecked: PropTypes.any,
-  error: PropTypes.any,
-  onChange: PropTypes.oneOfType([
-    PropTypes.bool,
-    PropTypes.func,
-  ]),
-};
-const defaultProps = {
-  type: 'text',
-  component: 'input',
-  defaultValue: '',
-  value: undefined,
-  defaultChecked: undefined,
-  checked: undefined,
-  error: undefined,
-  onChange: false,
-};
-
 const isEvent = candidate =>
   !!(candidate && candidate.stopPropagation && candidate.preventDefault);
 
 class Field extends Component {
+
+  static contextTypes = {
+    update: PropTypes.object,
+    field: PropTypes.object,
+    handleChange: PropTypes.func,
+    handleBlur: PropTypes.func,
+    values: PropTypes.object,
+    errors: PropTypes.object,
+    warnings: PropTypes.object,
+  };
+  static propTypes = {
+    name: PropTypes.string.isRequired,
+    type: PropTypes.string,
+    component: PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.node,
+      PropTypes.element,
+      PropTypes.func,
+    ]),
+    value: PropTypes.any,
+    checked: PropTypes.any,
+    defaultValue: PropTypes.any,
+    defaultChecked: PropTypes.any,
+    error: PropTypes.any,
+    onChange: PropTypes.oneOfType([
+      PropTypes.bool,
+      PropTypes.func,
+    ]),
+  };
+  static defaultProps = {
+    type: 'text',
+    component: 'input',
+    defaultValue: '',
+    value: undefined,
+    defaultChecked: undefined,
+    checked: undefined,
+    error: undefined,
+    onChange: false,
+  };
+
   constructor(props) {
     super(props);
 
@@ -211,9 +212,5 @@ class Field extends Component {
       : createElement(component, props);
   }
 }
-
-Field.contextTypes = contextTypes;
-Field.propTypes = propTypes;
-Field.defaultProps = defaultProps;
 
 export default Field;
