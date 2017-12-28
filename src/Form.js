@@ -2,8 +2,8 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import scrollIntoView from 'scroll-into-view';
-import isPromise from './isPromise';
-import Deserialize from './Deserialize';
+import isPromise from './helpers/isPromise';
+import Deserialize from './helpers/Deserialize';
 
 class Form extends Component {
 
@@ -132,7 +132,7 @@ class Form extends Component {
 
   onSubmitFail(errors) {
     const errKeys = Object.keys(errors).filter(key => !!errors[key]);
-    console.log({errors, errKeys});
+    // console.log({errors, errKeys});
     let errorFieldKey;
     const $field = name => document.getElementsByName(name)[0];
     if (errKeys.length) {

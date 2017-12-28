@@ -2,8 +2,8 @@
 import React, { Component, cloneElement } from 'react';
 import PropTypes from 'prop-types';
 import unique from 'lodash.uniq';
-import Serialize from './Serialize';
-import Deserialize from './Deserialize';
+import Serialize from './helpers/Serialize';
+import Deserialize from './helpers/Deserialize';
 
 const isEvent = candidate =>
   !!(candidate && candidate.stopPropagation && candidate.preventDefault);
@@ -72,6 +72,7 @@ const connect = (Composed) => {
       // this.isValid = this.isValid.bind(this);
 
       this.submit = this.submit.bind(this);
+      this.reset = this.reset.bind(this);
       this.handleSubmit = this.handleSubmit.bind(this);
       this.validate = this.validate.bind(this);
 
@@ -172,12 +173,14 @@ const connect = (Composed) => {
       warnings: {},
     }) {
       this.form = initial.form;
+      const { names, values } = this.props;
       ((data) => {
         let isValid = true;
-        this.names = unique(data.names.concat(initial.names));
+        this.names = unique(data.names.concat(names, initial.names));
 
         this.values = {
           ...Deserialize(data.values, this.names),
+          ...Deserialize(values, this.names),
           ...Deserialize(initial.values, this.names),
         };
 
@@ -195,6 +198,8 @@ const connect = (Composed) => {
           if (field.required && !value) {
             isValid = false;
           }
+          field.defaultValue = value;
+
           return {
             ...fields,
             [name]: { ...field, value },
@@ -483,6 +488,17 @@ const connect = (Composed) => {
 
     submit() { this.subscriptions.submit(); }
 
+    reset() {
+      const { fields } = this;
+      Object.keys(fields).forEach(name => {
+        this.update.value(name, fields[name].defaultValue);
+      });
+      this.setState({
+        fields: this.fields,
+        values: this.values,
+      });
+    }
+
     handleSubmit(e) {
       e.persist();
       const { names, values, fields } = this.data;
@@ -532,8 +548,9 @@ const connect = (Composed) => {
 
     render() {
       const { values, fields, errors, warnings } = this.state;
-      return cloneElement(this.props.children, {
-        ...this.props,
+      const { children, ...other } = this.props;
+      return cloneElement(children, {
+        ...other,
         ...this.state,
         isValid: Object.keys(values).reduce((isValid, name) => {
           const field = fields[name];
@@ -558,6 +575,7 @@ const connect = (Composed) => {
         handleChange: this.field.update,
         handleBlur: this.field.blur,
         update: this.update,
+        reset: this.reset,
       });
     }
 

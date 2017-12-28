@@ -1,8 +1,7 @@
 import keys from 'lodash.keys';
 import set from 'lodash.set';
 import trim from 'lodash.trim';
-
-const toBoolean = bool => (bool === 'false' ? false : !!bool);
+import toBoolean from './helpers/toBoolean';
 
 export default function Serialize(values) {
   const data = {};

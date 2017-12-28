@@ -5,9 +5,7 @@ import React, {
   isValidElement,
 } from 'react';
 import PropTypes from 'prop-types';
-
-const isEvent = candidate =>
-  !!(candidate && candidate.stopPropagation && candidate.preventDefault);
+import isEvent from './helpers/isEvent';
 
 class Field extends Component {
 
@@ -195,7 +193,8 @@ class Field extends Component {
       props.field.checked = this.value;
     }
     if (type === 'radio') {
-      props.field.checked = value === this.context.values[name];
+      const toString = val => typeof val !== 'undefined' ? val.toString() : val;
+      props.field.checked = toString(value) === toString(this.context.values[name]);
     }
     if (type === 'checkbox' || type === 'radio') {
       props.field.onChange = this.handleChange;
