@@ -546,55 +546,54 @@ const connect = (Composed) => {
       this.subscriptions[name] = undefined;
     }
 
-    render() {
-      const { values, fields, errors, warnings } = this.state;
-      const { children, ...other } = this.props;
-      return cloneElement(children, {
-        ...other,
-        ...this.state,
-        isValid: Object.keys(values).reduce((isValid, name) => {
-          const field = fields[name];
-          if (
-            (field && errors[name])
+    get isValid() {
+      const { values, fields, errors } = this.state;
+      return Object.keys(values).reduce((isValid, name) => {
+        const field = fields[name];
+        if (
+          (field && errors[name])
+          &&
+          (
+            typeof field.required !== 'undefined'
             &&
-            (
-              typeof field.required !== 'undefined'
-              &&
-              field.required === true
-            )
-          ) {
-            return false;
-          }
-          return isValid;
-        }, true),
-        serialized: {
-          values: Serialize(values),
-          errors: Serialize(errors),
-          warnings: Serialize(warnings),
-        },
-        handleChange: this.field.update,
-        handleBlur: this.field.blur,
-        update: this.update,
-        reset: this.reset,
-      });
+            field.required === true
+          )
+        ) {
+          return false;
+        }
+        return isValid;
+      }, true);
+    }
+
+    get serialized() {
+      const { values, errors, warnings } = this.state;
+      return {
+        values: Serialize(values),
+        errors: Serialize(errors),
+        warnings: Serialize(warnings),
+      };
+    }
+
+    render() {
+      return (
+        <Composed
+          {...this.state}
+          {...this.props}
+          isValid={this.isValid}
+          serialized={this.serialized}
+          handleChange={this.field.update}
+          handleBlur={this.field.blur}
+          update={this.update}
+          reset={this.reset}
+        />
+      );
     }
 
   }
 
-  return class extends Component {
-    render() {
-      return (
-        <Connect
-          {...this.props}
-        >
-          <Composed
-            {...this.props}
-          />
-        </Connect>
-      );
-    }
-  };
-
+  return props => (
+    <Connect {...props} />
+  );
 };
 
 export default () => target => connect(target);

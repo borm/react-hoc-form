@@ -1,5 +1,8 @@
 import Connect from './Connect';
-export Form from './Form';
-export Field from './Field';
+
+import Form from './Form';
+import Field from './Field';
 
 export default Connect;
+export { Form };
+export { Field };
