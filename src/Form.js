@@ -18,6 +18,10 @@ class Form extends Component {
   };
   static propTypes = {
     validateOnBlur: PropTypes.bool,
+    scrollIntoView: PropTypes.oneOfType([
+      PropTypes.object,
+      PropTypes.bool,
+    ]),
     noValidate: PropTypes.bool,
     children: PropTypes.any,
 
@@ -31,6 +35,7 @@ class Form extends Component {
   };
   static defaultProps = {
     validateOnBlur: true,
+    scrollIntoView: true,
     noValidate: true,
     children: null,
 
@@ -131,6 +136,7 @@ class Form extends Component {
   }
 
   onSubmitFail(errors) {
+    const { scrollIntoView } = this.props;
     const errKeys = Object.keys(errors).filter(key => !!errors[key]);
     // console.log({errors, errKeys});
     let errorFieldKey;
@@ -146,8 +152,11 @@ class Form extends Component {
         return offsetTop(prev) < offsetTop(next) ? prevKey : nextKey;
       });
     }
-    if (typeof errorFieldKey !== 'undefined') {
-      scrollIntoView($field(errorFieldKey));
+    if (typeof errorFieldKey !== 'undefined' && scrollIntoView) {
+      scrollIntoView(
+        $field(errorFieldKey),
+        typeof scrollIntoView !== "boolean" ? scrollIntoView : {},
+      );
       return false;
     }
     return true;
@@ -171,7 +180,8 @@ class Form extends Component {
 
   render() {
     const {
-      names, values, fields, errors, warnings, validate, validateOnBlur,
+      names, values, fields, errors, warnings,
+      validate, validateOnBlur, scrollIntoView,
       ...other,
     } = this.props;
     return (

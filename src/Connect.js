@@ -4,9 +4,7 @@ import PropTypes from 'prop-types';
 import unique from 'lodash.uniq';
 import Serialize from './helpers/Serialize';
 import Deserialize from './helpers/Deserialize';
-
-const isEvent = candidate =>
-  !!(candidate && candidate.stopPropagation && candidate.preventDefault);
+import isEvent from './helpers/isEvent';
 
 const connect = (Composed) => {
 
@@ -66,6 +64,7 @@ const connect = (Composed) => {
         warnings: this.warnings,
         validateOnBlur: props.validateOnBlur,
         isValid: false,
+        isSubmitted: false,
       };
 
       this.initialize = this.initialize.bind(this);
@@ -82,7 +81,7 @@ const connect = (Composed) => {
     }
 
     getChildContext() {
-      const { names, values, fields, errors, warnings } = this.state;
+      const { names, errors, warnings } = this.state;
       return {
         initialize: this.initialize,
         update: this.update,
@@ -109,43 +108,55 @@ const connect = (Composed) => {
       return required;
     }
 
-    get serializeArray() {
+    get formData() {
       const form = this.form;
       let field;
       let l;
-      const s = [];
+      const result = {};
       if (typeof form === 'object' && form.nodeName === 'FORM') {
         const { elements } = form;
         const len = elements.length;
         for (let i = 0; i < len; i += 1) {
           field = elements[i];
           const {
-            type, name, value, disabled, required,
+            type, name, required, disabled,
           } = field;
+          let value = '';
           if (name && type !== 'file' && type !== 'reset' && type !== 'submit' && type !== 'button') {
+            result[name] = { type, name, required, disabled };
+
             if (type === 'select-multiple') {
               l = elements[i].options.length;
               for (let j = 0; j < l; j++) {
                 if (field.options[j].selected) {
-                  s[s.length] = { type, required, name, value: field.options[j].value };
+                  value = field.options[j].value;
                 }
               }
             } else if (type === 'checkbox') {
-              s[s.length] = { type, name, value: field.checked, disabled, required };
-            } else {
-              s[s.length] = { type, name, value, disabled, required };
+              value = field.checked;
+            } else if (type === 'radio') {
+              const checked = field.checked;
+              if (checked) {
+                value = field.value;
+              }
+            }  else {
+              value = field.value;
             }
+
+            result[name].value = value;
           }
         }
       }
-      return s;
+      return result;
     }
 
     get data() {
-      return this.serializeArray.reduce(({ fields, values, names }, element) => {
-        const { type, name } = element;
+      const formData = this.formData;
+      let element;
+      return Object.keys(formData).reduce(({ fields, values, names }, name) => {
+        element = formData[name];
         const field = fields[name];
-        const value = field && field.value ? field.value : element.value;
+        let value = (field && field.value) ? field.value : element.value;
         return {
           fields: {
             ...fields,
@@ -156,7 +167,7 @@ const connect = (Composed) => {
           },
           values: {
             ...values,
-            [name]: type === 'checkbox' ? value : value || '',
+            [name]: value,
           },
           names: names.concat(name),
         };
@@ -330,17 +341,27 @@ const connect = (Composed) => {
     set field(eventOrProps) {
       let fieldProps;
 
+      const getValue = ({ type, value, defaultValue, checked }) => {
+        if (type === 'radio') {
+          return checked ? value : '';
+        }
+        if (!value && typeof value !== 'boolean') {
+          return value || defaultValue || '';
+        } else {
+          return value;
+        }
+      };
+
       if (isEvent(eventOrProps)) {
-        fieldProps = (({ name, required, disabled, value }) => ({
-          name, required, disabled, value,
+        fieldProps = (({ type, name, required, disabled, value, defaultValue, checked }) => ({
+          name, required, disabled,
+          value: getValue({type, value, defaultValue: '', checked}),
         }))(eventOrProps.target);
       } else {
-        fieldProps = (({ name, value, defaultValue }) => ({
+        fieldProps = (({ type, name, value, defaultValue, checked }) => ({
           ...this.fields[name] || {},
           ...eventOrProps,
-          value: (!value && typeof value !== 'boolean')
-            ? value || defaultValue
-            : value,
+          value: getValue({type, value, defaultValue, checked}),
         }))(eventOrProps);
       }
 
@@ -410,12 +431,14 @@ const connect = (Composed) => {
           this.values[name] = value;
           this.fields[name].value = value;
         },
-        values: (values) => {
+        values: (values, state = {}) => {
           const newValues = Deserialize(values, this.names);
+          console.log(newValues);
           this.values = {
             ...Deserialize(this.values, this.names),
             ...newValues,
           };
+          console.log(this.values);
 
           Object.keys(newValues).forEach((name) => {
             const value = this.values[name];
@@ -443,6 +466,7 @@ const connect = (Composed) => {
             values: this.values,
             fields: this.fields,
             errors: this.errors,
+            ...state,
           });
         },
         errors: (errors) => {
@@ -490,13 +514,16 @@ const connect = (Composed) => {
 
     reset() {
       const { fields } = this;
+      const values = {};
+      let value;
       Object.keys(fields).forEach(name => {
-        this.update.value(name, fields[name].defaultValue);
+        value = fields[name].defaultValue;
+        if (typeof value !== 'boolean' && !value) {
+          value = null;
+        }
+        values[name] = value;
       });
-      this.setState({
-        fields: this.fields,
-        values: this.values,
-      });
+      this.update.values(values, { isSubmitted: false });
     }
 
     handleSubmit(e) {
@@ -523,6 +550,7 @@ const connect = (Composed) => {
         fields: this.fields,
         errors: this.errors,
         warnings: this.warnings,
+        isSubmitted: true,
       });
 
       this.subscriptions.handleSubmit(e, {

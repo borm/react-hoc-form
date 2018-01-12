@@ -134,10 +134,14 @@ class Field extends Component {
 
   handleChange(eventOrValue) {
     let value;
+    const props = { ...this.props };
     if (isEvent(eventOrValue)) {
       const { target } = eventOrValue;
       if (target.type === 'checkbox') {
         value = target.checked;
+      } else if (target.type === 'radio') {
+        value = target.value;
+        props.checked = target.checked;
       } else {
         value = target.value;
       }
@@ -146,7 +150,7 @@ class Field extends Component {
     }
     // console.error('handleChange', value);
     this.setState({ value });
-    const props = { ...this.props, value };
+    props.value = value;
     this.context.handleBlur(props);
   }
 
@@ -193,7 +197,10 @@ class Field extends Component {
       props.field.checked = this.value;
     }
     if (type === 'radio') {
-      const toString = val => typeof val !== 'undefined' ? val.toString() : val;
+      const toString = val =>
+        (typeof val !== 'undefined' && typeof val !== 'string' && val !== null)
+          ? JSON.stringify(val)
+          : val;
       props.field.checked = toString(value) === toString(this.context.values[name]);
     }
     if (type === 'checkbox' || type === 'radio') {
